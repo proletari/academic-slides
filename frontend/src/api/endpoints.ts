@@ -1377,3 +1377,48 @@ export const extractStyleFromImage = async (
   );
   return response.data;
 };
+
+
+// ===== Academic / Paper API =====
+
+/**
+ * Upload a PDF paper for parsing
+ */
+export const uploadPaper = async (
+  file: File
+): Promise<ApiResponse<any>> => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await apiClient.post<ApiResponse<any>>('/api/papers', formData);
+  return response.data;
+};
+
+/**
+ * Fetch and parse a paper from arXiv
+ */
+export const fetchArxivPaper = async (
+  arxivId: string
+): Promise<ApiResponse<any>> => {
+  const response = await apiClient.post<ApiResponse<any>>('/api/papers/arxiv', {
+    arxiv_id: arxivId,
+  });
+  return response.data;
+};
+
+/**
+ * Export project as LaTeX Beamer presentation
+ */
+export const exportBeamer = async (
+  projectId: string,
+  options?: { venue?: string; compile?: boolean }
+): Promise<ApiResponse<{ tex_url: string; pdf_url?: string; venue: string }>> => {
+  const params = new URLSearchParams();
+  if (options?.venue) params.set('venue', options.venue);
+  if (options?.compile) params.set('compile', 'true');
+
+  const response = await apiClient.get<ApiResponse<{ tex_url: string; pdf_url?: string; venue: string }>>(
+    `/api/projects/${projectId}/export/beamer?${params.toString()}`
+  );
+  return response.data;
+};
