@@ -19,7 +19,7 @@ class Project(db.Model):
     extra_requirements = db.Column(db.Text, nullable=True)  # 额外要求，应用到每个页面的AI提示词
     outline_requirements = db.Column(db.Text, nullable=True)  # 大纲生成要求
     description_requirements = db.Column(db.Text, nullable=True)  # 页面描述生成要求
-    creation_type = db.Column(db.String(20), nullable=False, default='idea')  # idea|outline|descriptions
+    creation_type = db.Column(db.String(20), nullable=False, default='idea')  # idea|outline|descriptions|paper|arxiv|text
     template_image_path = db.Column(db.String(500), nullable=True)
     template_style = db.Column(db.Text, nullable=True)  # 风格描述文本（无模板图模式）
     # 导出设置
@@ -27,18 +27,24 @@ class Project(db.Model):
     export_inpaint_method = db.Column(db.String(50), nullable=True, default='hybrid')  # 背景图获取方法: generative, baidu, hybrid
     export_allow_partial = db.Column(db.Boolean, nullable=True, default=False)  # 是否允许返回半成品（导出出错时继续而非停止）
     image_aspect_ratio = db.Column(db.String(10), nullable=False, server_default='16:9', default='16:9')
+    # Academic fields
+    paper_id = db.Column(db.String(36), db.ForeignKey('papers.id'), nullable=True)
+    venue = db.Column(db.String(50), nullable=True)  # neurips, icml, thesis, etc.
+    academic_template_id = db.Column(db.String(36), db.ForeignKey('academic_templates.id'), nullable=True)
     status = db.Column(db.String(50), nullable=False, default='DRAFT')
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
     # 使用 'select' 策略支持 eager loading，同时保持灵活性
-    pages = db.relationship('Page', back_populates='project', lazy='select', 
+    pages = db.relationship('Page', back_populates='project', lazy='select',
                            cascade='all, delete-orphan', order_by='Page.order_index')
     tasks = db.relationship('Task', back_populates='project', lazy='select',
                            cascade='all, delete-orphan')
     materials = db.relationship('Material', back_populates='project', lazy='select',
                            cascade='all, delete-orphan')
+    paper = db.relationship('Paper', lazy='select', foreign_keys=[paper_id])
+    academic_template = db.relationship('AcademicTemplate', lazy='select', foreign_keys=[academic_template_id])
     
     def to_dict(self, include_pages=False):
         """Convert to dictionary"""
@@ -66,6 +72,9 @@ class Project(db.Model):
             'export_inpaint_method': self.export_inpaint_method or 'hybrid',
             'export_allow_partial': self.export_allow_partial or False,
             'image_aspect_ratio': self.image_aspect_ratio,
+            'paper_id': self.paper_id,
+            'venue': self.venue,
+            'academic_template_id': self.academic_template_id,
             'status': self.status,
             'created_at': created_at_str,
             'updated_at': updated_at_str,
