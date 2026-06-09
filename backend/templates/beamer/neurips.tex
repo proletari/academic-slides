@@ -1,0 +1,80 @@
+\documentclass[aspectratio=169]{beamer}
+
+% NeurIPS-style presentation
+\usetheme{metropolis}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+
+% NeurIPS colors
+\definecolor{neuripsblue}{RGB}{0,82,155}
+
+\title{ {{- title -}} }
+\author{ {{- authors -}} }
+\institute{ {{- institute -}} }
+\date{ {{- date -}} }
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+{% if show_outline %}
+\begin{frame}{Outline}
+  \tableofcontents
+\end{frame}
+{% endif %}
+
+{% for slide in slides %}
+{% if slide.section %}
+\section{ {{- slide.section -}} }
+{% endif %}
+
+\begin{frame}{ {{- slide.title -}} }
+{% if slide.content_type == 'bullets' %}
+  \begin{itemize}
+{% for point in slide.points %}
+    \item {{ point }}
+{% endfor %}
+  \end{itemize}
+{% elif slide.content_type == 'text' %}
+  {{ slide.text }}
+{% elif slide.content_type == 'columns' %}
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      {{ slide.left_content }}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      {{ slide.right_content }}
+    \end{column}
+  \end{columns}
+{% elif slide.content_type == 'image' %}
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{ {{- slide.image_path -}} }
+  \end{center}
+{% if slide.caption %}
+  \begin{center}
+    \small{ {{- slide.caption -}} }
+  \end{center}
+{% endif %}
+{% elif slide.content_type == 'math' %}
+  \begin{equation}
+    {{ slide.formula }}
+  \end{equation}
+{% if slide.explanation %}
+  \vspace{0.5em}
+  {{ slide.explanation }}
+{% endif %}
+{% endif %}
+{% if slide.notes %}
+  \note{ {{- slide.notes -}} }
+{% endif %}
+\end{frame}
+
+{% endfor %}
+
+\end{document}

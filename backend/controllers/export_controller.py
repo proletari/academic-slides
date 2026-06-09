@@ -374,3 +374,56 @@ def export_editable_pptx(project_id):
     except Exception as e:
         logger.exception("Error creating export task")
         return error_response('SERVER_ERROR', str(e), 500)
+
+
+@export_bp.route('/<project_id>/export/beamer', methods=['GET'])
+def export_beamer(project_id):
+    """
+    GET /api/projects/{project_id}/export/beamer - Export LaTeX Beamer presentation
+
+    Query params:
+        venue: venue name (optional, uses project.venue)
+        compile: "true" to compile PDF (optional, requires pdflatex)
+    """
+    from services.beamer_export_service import render_beamer, compile_beamer
+
+    project = Project.query.get(project_id)
+    if not project:
+        return not_found('Project')
+
+    venue = request.args.get('venue', getattr(project, 'venue', None) or 'default')
+    do_compile = request.args.get('compile', 'false').lower() == 'true'
+
+    try:
+        # Render LaTeX
+        tex_source = render_beamer(project, venue=venue)
+
+        # Save .tex file
+        file_service = FileService(project_id)
+        tex_filename = f"presentation_{venue}.tex"
+        tex_path = file_service.get_export_path(tex_filename)
+        os.makedirs(os.path.dirname(tex_path), exist_ok=True)
+        with open(tex_path, 'w', encoding='utf-8') as f:
+            f.write(tex_source)
+
+        result = {
+            'tex_url': f'/files/{project_id}/exports/{tex_filename}',
+            'venue': venue,
+        }
+
+        # Optionally compile to PDF
+        if do_compile:
+            pdf_path = compile_beamer(tex_source, output_dir=os.path.dirname(tex_path))
+            if pdf_path and os.path.exists(pdf_path):
+                pdf_filename = f"presentation_{venue}.pdf"
+                final_pdf = file_service.get_export_path(pdf_filename)
+                shutil.move(pdf_path, final_pdf)
+                result['pdf_url'] = f'/files/{project_id}/exports/{pdf_filename}'
+            else:
+                result['pdf_error'] = 'pdflatex not available or compilation failed'
+
+        return success_response(data=result, message="Beamer export successful")
+
+    except Exception as e:
+        logger.exception("Error exporting Beamer")
+        return error_response('SERVER_ERROR', str(e), 500)
