@@ -1041,3 +1041,127 @@ Only output the style description text, no other content.
 """
     logger.debug(f"[get_style_extraction_prompt] Final prompt:\n{prompt}")
     return prompt
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# 7. Academic Prompts — 学术演示文稿专用
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def get_academic_outline_prompt(project_context: 'ProjectContext', venue: str = 'conference', language: str = None) -> str:
+    """Generate an academic presentation outline from paper content."""
+    idea = project_context.idea_prompt or ""
+
+    venue_guidance = {
+        'conference': "This is a conference oral/poster presentation. Structure: Title → Introduction → Related Work → Method → Experiments → Results → Conclusion. Keep it concise (8-15 slides).",
+        'thesis': "This is a thesis defense presentation. Structure: Title → Background → Literature Review → Methodology → Results → Discussion → Conclusion → Future Work. Can be longer (15-30 slides).",
+        'meeting': "This is a group meeting presentation. Focus on: Problem → Approach → Preliminary Results → Next Steps. Keep it short (5-10 slides).",
+        'lecture': "This is a teaching lecture. Structure: Overview → Concepts → Examples → Practice → Summary. Adjust length to topic.",
+    }
+
+    guidance = venue_guidance.get(venue, venue_guidance['conference'])
+
+    prompt = f"""\
+You are an academic presentation expert. Generate a structured outline for an academic presentation.
+
+{guidance}
+
+{_OUTLINE_JSON_FORMAT}
+
+Requirements:
+- The first slide MUST be a title slide with paper title, authors, and affiliation
+- Each slide should have a clear, academic title
+- Bullet points should be concise (≤15 words each)
+- Highlight key contributions (max 3)
+- Include figure/table references where relevant (e.g., "See Figure 1")
+- Use formal academic tone
+
+The content to present:
+{idea}
+
+{get_language_instruction(language)}
+
+Now generate the outline. Output only JSON, no other text.
+"""
+    return _build_prompt(prompt, project_context.reference_files_content, tag='get_academic_outline_prompt')
+
+
+def get_academic_slide_prompt(page, venue: str = 'conference', section_type: str = 'content', language: str = None) -> str:
+    """Generate description for a single academic slide."""
+    title = ''
+    points = []
+    if page.outline_content:
+        try:
+            import json
+            outline = json.loads(page.outline_content) if isinstance(page.outline_content, str) else page.outline_content
+            title = outline.get('title', '')
+            points = outline.get('points', [])
+        except (json.JSONDecodeError, TypeError):
+            pass
+
+    points_text = '\n'.join(f'- {p}' for p in points) if points else '- (No outline points provided)'
+
+    section_guidance = {
+        'title': "This is the title slide. Include paper title, author names, affiliations, and date. Keep it clean and professional.",
+        'introduction': "Set the context, state the problem, and motivate the work. Include a clear problem statement.",
+        'method': "Describe the proposed method/approach. Use step-by-step bullets. Reference equations or algorithms if applicable.",
+        'results': "Present key results with specific numbers. Highlight improvements over baselines. Reference figures/tables.",
+        'conclusion': "Summarize key contributions and findings. Mention limitations and future work briefly.",
+        'content': "Present the content clearly and concisely.",
+    }
+
+    guidance = section_guidance.get(section_type, section_guidance['content'])
+
+    prompt = f"""\
+You are generating slide content for an academic presentation ({venue}).
+
+Slide title: {title}
+Outline points:
+{points_text}
+
+Guidance: {guidance}
+
+Generate the slide description with:
+1. "页面文字" section: Markdown content for the slide (bullets, ≤15 words each)
+2. If applicable, suggest visual elements (figures, tables, equations)
+3. A brief speaker note (2-3 sentences)
+
+Output format:
+页面文字:
+[markdown content]
+
+视觉元素:
+[suggestions for visuals, or "None"]
+
+演讲者备注:
+[2-3 sentences for the speaker]
+
+{get_language_instruction(language)}
+"""
+    return prompt
+
+
+def get_speaker_notes_prompt(slides_summary: str, total_slides: int, duration_minutes: int = 15, language: str = None) -> str:
+    """Generate speaker notes for the entire presentation."""
+    prompt = f"""\
+You are an academic presentation coach. Generate speaker notes for a {duration_minutes}-minute presentation with {total_slides} slides.
+
+Slides overview:
+{slides_summary}
+
+For each slide, provide:
+1. Key talking points (what to emphasize)
+2. Transition to next slide
+3. Suggested time allocation (in seconds)
+
+Output as JSON array:
+[
+    {{"slide": 1, "notes": "Welcome and introduce...", "transition": "Let's now look at...", "seconds": 60}},
+    ...
+]
+
+{get_language_instruction(language)}
+
+Output only JSON, no other text.
+"""
+    return prompt
