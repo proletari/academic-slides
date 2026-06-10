@@ -553,6 +553,22 @@ class AIService:
         return cleaned_text, extra_fields
 
     @staticmethod
+    def _infer_section_type(page_outline: Dict, page_index: int) -> str:
+        """Infer academic section type from page title/outline for academic prompts."""
+        title = (page_outline.get('title', '') or '').lower()
+        if page_index == 0 or 'title' in title:
+            return 'title'
+        if any(k in title for k in ['introduction', 'background', 'motivation', 'overview']):
+            return 'introduction'
+        if any(k in title for k in ['method', 'approach', 'model', 'architecture', 'framework', 'proposed']):
+            return 'method'
+        if any(k in title for k in ['experiment', 'result', 'evaluation', 'ablation', 'performance']):
+            return 'results'
+        if any(k in title for k in ['conclusion', 'summary', 'discussion', 'future', 'limitation']):
+            return 'conclusion'
+        return 'content'
+
+    @staticmethod
     def _get_extra_field_names() -> list:
         """从 Settings 读取配置的额外字段名列表。"""
         try:
@@ -583,16 +599,28 @@ class AIService:
         extra_field_names = self._get_extra_field_names()
         part_info = f"\nThis page belongs to: {page_outline['part']}" if 'part' in page_outline else ""
 
-        desc_prompt = get_page_description_prompt(
-            project_context=project_context,
-            outline=outline,
-            page_outline=page_outline,
-            page_index=page_index,
-            part_info=part_info,
-            language=language,
-            detail_level=detail_level,
-            extra_fields=extra_field_names,
-        )
+        # Use academic prompts for paper/arxiv projects
+        project = project_context.project
+        if project.creation_type in ('paper', 'arxiv'):
+            from services.prompts import get_academic_slide_prompt
+            venue = getattr(project, 'venue', None) or 'conference'
+            desc_prompt = get_academic_slide_prompt(
+                page=page_outline,
+                venue=venue,
+                section_type=self._infer_section_type(page_outline, page_index),
+                language=language,
+            )
+        else:
+            desc_prompt = get_page_description_prompt(
+                project_context=project_context,
+                outline=outline,
+                page_outline=page_outline,
+                page_index=page_index,
+                part_info=part_info,
+                language=language,
+                detail_level=detail_level,
+                extra_fields=extra_field_names,
+            )
 
         # 根据 enable_text_reasoning 配置调整 thinking_budget
         actual_budget = self._get_text_thinking_budget()

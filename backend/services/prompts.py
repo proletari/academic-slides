@@ -1087,10 +1087,14 @@ Now generate the outline. Output only JSON, no other text.
 
 
 def get_academic_slide_prompt(page, venue: str = 'conference', section_type: str = 'content', language: str = None) -> str:
-    """Generate description for a single academic slide."""
+    """Generate description for a single academic slide. Accepts Page ORM object or dict."""
     title = ''
     points = []
-    if page.outline_content:
+    # Support both Page ORM object and dict
+    if isinstance(page, dict):
+        title = page.get('title', '')
+        points = page.get('points', [])
+    elif hasattr(page, 'outline_content') and page.outline_content:
         try:
             import json
             outline = json.loads(page.outline_content) if isinstance(page.outline_content, str) else page.outline_content
