@@ -678,12 +678,12 @@ export const Home: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-orange-50/30 to-pink-50/50 dark:from-background-primary dark:via-background-primary dark:to-background-primary relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50/30 to-purple-50/50 dark:from-background-primary dark:via-background-primary dark:to-background-primary relative overflow-hidden">
       {/* 背景装饰元素 - 仅在亮色模式显示 */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none dark:hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-banana-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-orange-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-yellow-400/5 rounded-full blur-3xl"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-indigo-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-purple-400/5 rounded-full blur-3xl"></div>
       </div>
 
       {/* 导航栏 */}
@@ -694,12 +694,12 @@ export const Home: React.FC = () => {
             <div className="flex items-center">
               <img
                 src="/logo.png"
-                alt="蕉幻 Banana Slides Logo"
+                alt="Academic Slides Logo"
                 className="h-10 md:h-12 w-auto rounded-lg object-contain"
               />
             </div>
-            <span className="text-xl md:text-2xl font-bold bg-gradient-to-r from-banana-600 via-orange-500 to-pink-500 bg-clip-text text-transparent">
-              蕉幻
+            <span className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-500 bg-clip-text text-transparent">
+              Academic Slides
             </span>
           </div>
           <div className="flex items-center gap-2 md:gap-3">
@@ -841,16 +841,16 @@ export const Home: React.FC = () => {
         {/* Hero 标题区 */}
         <div className="text-center mb-10 md:mb-16 space-y-4 md:space-y-6">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-background-secondary backdrop-blur-sm rounded-full shadow-sm dark:shadow-none mb-4">
-            <span className="text-2xl animate-pulse"><Sparkles size={20} className="text-orange-500 dark:text-banana" /></span>
+            <span className="text-2xl animate-pulse"><Sparkles size={20} className="text-blue-500 dark:text-blue-400" /></span>
             <span className="text-sm font-medium text-gray-700 dark:text-foreground-secondary">{t('home.tagline')}</span>
           </div>
 
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold leading-tight">
-            <span className="bg-gradient-to-r from-yellow-600 via-orange-500 to-pink-500 dark:from-banana-dark dark:via-banana dark:to-banana-light bg-clip-text text-transparent dark:italic" style={{
+            <span className="bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent" style={{
               backgroundSize: '200% auto',
               animation: 'gradient 3s ease infinite',
             }}>
-              {i18n.language?.startsWith('zh') ? `${t('home.title')} · Banana Slides` : 'Banana Slides'}
+              {t('home.title')}
             </span>
           </h1>
 
@@ -861,10 +861,9 @@ export const Home: React.FC = () => {
           {/* 特性标签 */}
           <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3 pt-4">
             {[
-              { icon: <Sparkles size={14} className="text-yellow-600 dark:text-banana" />, label: t('home.features.oneClick') },
-              { icon: <FileEdit size={14} className="text-blue-500 dark:text-blue-400" />, label: t('home.features.naturalEdit') },
-              { icon: <Search size={14} className="text-orange-500 dark:text-orange-400" />, label: t('home.features.regionEdit') },
-
+              { icon: <Sparkles size={14} className="text-blue-600 dark:text-blue-400" />, label: t('home.features.oneClick') },
+              { icon: <FileEdit size={14} className="text-indigo-500 dark:text-indigo-400" />, label: t('home.features.naturalEdit') },
+              { icon: <Search size={14} className="text-purple-500 dark:text-purple-400" />, label: t('home.features.regionEdit') },
               { icon: <Paperclip size={14} className="text-green-600 dark:text-green-400" />, label: t('home.features.export') },
             ].map((feature, idx) => (
               <span
@@ -890,7 +889,7 @@ export const Home: React.FC = () => {
                   onClick={() => setActiveTab(type)}
                   className={`flex-1 flex items-center justify-center gap-1.5 md:gap-2 px-3 md:px-6 py-2.5 md:py-3 rounded-lg dark:rounded-xl font-medium transition-all text-sm md:text-base touch-manipulation ${
                     activeTab === type
-                      ? 'bg-gradient-to-r from-banana-500 to-banana-600 dark:from-banana dark:to-banana text-black shadow-yellow dark:shadow-lg dark:shadow-banana/20'
+                      ? 'bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-500 dark:to-indigo-500 text-white shadow-lg dark:shadow-blue-500/20'
                       : 'bg-white dark:bg-background-elevated border border-gray-200 dark:border-border-primary text-gray-700 dark:text-foreground-secondary hover:bg-banana-50 dark:hover:bg-background-hover active:bg-banana-100'
                   }`}
                 >
