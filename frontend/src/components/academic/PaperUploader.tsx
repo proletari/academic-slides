@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Upload, FileText, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Upload, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface PaperUploaderProps {
   onPaperUploaded: (paper: any) => void;

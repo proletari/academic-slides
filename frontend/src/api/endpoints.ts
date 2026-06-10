@@ -21,11 +21,13 @@ export const verifyAccessCode = async (code: string): Promise<ApiResponse<{ vali
  */
 export const createProject = async (data: CreateProjectRequest): Promise<ApiResponse<Project>> => {
   // 根据输入类型确定 creation_type
-  let creation_type = 'idea';
-  if (data.description_text) {
-    creation_type = 'descriptions';
-  } else if (data.outline_text) {
-    creation_type = 'outline';
+  let creation_type = data.creation_type || 'idea';
+  if (!data.creation_type) {
+    if (data.description_text) {
+      creation_type = 'descriptions';
+    } else if (data.outline_text) {
+      creation_type = 'outline';
+    }
   }
 
   const response = await apiClient.post<ApiResponse<Project>>('/api/projects', {
@@ -35,6 +37,8 @@ export const createProject = async (data: CreateProjectRequest): Promise<ApiResp
     description_text: data.description_text,
     template_style: data.template_style,
     image_aspect_ratio: data.image_aspect_ratio,
+    paper_id: data.paper_id,
+    venue: data.venue,
   });
   return response.data;
 };

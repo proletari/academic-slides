@@ -16,7 +16,7 @@ from sqlalchemy.orm import joinedload
 from werkzeug.exceptions import BadRequest
 from werkzeug.utils import secure_filename
 
-from models import db, Project, Page, Task, ReferenceFile
+from models import db, Project, Page, Task, ReferenceFile, Paper
 from services import ProjectContext, FileService
 from services.ai_service_manager import get_ai_service
 from services.task_manager import (
@@ -219,7 +219,7 @@ def create_project():
         
         creation_type = data.get('creation_type')
         
-        if creation_type not in ['idea', 'outline', 'descriptions']:
+        if creation_type not in ['idea', 'outline', 'descriptions', 'paper', 'arxiv']:
             return bad_request("Invalid creation_type")
         
         # Validate and set aspect ratio if provided
@@ -238,6 +238,8 @@ def create_project():
             description_text=data.get('description_text'),
             template_style=data.get('template_style'),
             image_aspect_ratio=image_aspect_ratio,
+            paper_id=data.get('paper_id'),
+            venue=data.get('venue'),
             status='DRAFT'
         )
         
@@ -456,6 +458,43 @@ def generate_outline(project_id):
 
             project_context = ProjectContext(project, reference_files_content)
             outline = ai_service.parse_description_to_outline(project_context, language=language)
+        elif project.creation_type in ('paper', 'arxiv'):
+            # 论文/arXiv 生成：从 paper 内容生成学术大纲
+            if not project.paper_id:
+                return bad_request("paper_id is required for paper/arxiv type project")
+
+            paper = Paper.query.get(project.paper_id)
+            if not paper:
+                return not_found('Paper')
+
+            # Build paper context as idea_prompt
+            paper_parts = []
+            if paper.title:
+                paper_parts.append(f"Title: {paper.title}")
+            if paper.authors:
+                paper_parts.append(f"Authors: {paper.authors}")
+            if paper.abstract:
+                paper_parts.append(f"Abstract: {paper.abstract}")
+            if paper.parsed_sections:
+                try:
+                    sections = json.loads(paper.parsed_sections)
+                    for sec in sections:
+                        level_prefix = '#' * sec.get('level', 1)
+                        paper_parts.append(f"{level_prefix} {sec['title']}\n{sec.get('content', '')}")
+                except (json.JSONDecodeError, TypeError):
+                    pass
+
+            paper_content = '\n\n'.join(paper_parts)
+            project.idea_prompt = paper_content
+
+            venue = project.venue or 'conference'
+            from services.prompts import get_academic_outline_prompt
+            project_context = ProjectContext(project, reference_files_content)
+            outline = ai_service.generate_outline_with_prompt(
+                project_context,
+                get_academic_outline_prompt(project_context, venue=venue, language=language),
+                language=language
+            )
         else:
             # 一句话生成：从idea生成大纲
             idea_prompt = data.get('idea_prompt') or project.idea_prompt

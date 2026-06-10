@@ -108,12 +108,15 @@ export interface Task {
 
 // 创建项目请求
 export interface CreateProjectRequest {
+  creation_type?: string;
   idea_prompt?: string;
   outline_text?: string;
   description_text?: string;
   template_image?: File;
   template_style?: string;
   image_aspect_ratio?: string;
+  paper_id?: string;
+  venue?: string;
 }
 
 // API响应

@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Sparkles, FileText, FileEdit, ImagePlus, Paperclip, Palette, Lightbulb, Search, Settings, FolderOpen, HelpCircle, Sun, Moon, Globe, Monitor, ChevronDown, Upload, RefreshCw } from 'lucide-react';
+import { Sparkles, FileText, FileEdit, ImagePlus, Paperclip, Palette, Lightbulb, Search, Settings, FolderOpen, HelpCircle, Sun, Moon, Globe, Monitor, ChevronDown, BookOpen, GraduationCap } from 'lucide-react';
 import { Button, Card, useToast, MaterialGeneratorModal, MaterialCenterModal, MaterialSelector, ReferenceFileList, ReferenceFileSelector, FilePreviewModal, HelpModal, Footer, GithubRepoCard, TextStyleSelector } from '@/components/shared';
 import { MarkdownTextarea, type MarkdownTextareaRef } from '@/components/shared/MarkdownTextarea';
 import { TemplateSelector, getTemplateFile } from '@/components/shared/TemplateSelector';
-import { listUserTemplates, type UserTemplate, uploadReferenceFile, type ReferenceFile, associateFileToProject, triggerFileParse, associateMaterialsToProject, createPptRenovationProject } from '@/api/endpoints';
+import { PaperUploader, ArxivInput, VenueSelector } from '@/components/academic';
+import { listUserTemplates, type UserTemplate, uploadReferenceFile, type ReferenceFile, associateFileToProject, triggerFileParse, associateMaterialsToProject } from '@/api/endpoints';
 import { useProjectStore } from '@/store/useProjectStore';
 import { devLog } from '@/utils/logger';
 import { useTheme } from '@/hooks/useTheme';
@@ -189,7 +190,7 @@ export const Home: React.FC = () => {
   const { initializeProject, isGlobalLoading } = useProjectStore();
   const { show, ToastContainer } = useToast();
   
-  const [activeTab, setActiveTab] = useState<CreationType>('idea');
+  const [activeTab, setActiveTab] = useState<CreationType>('paper');
   const [content, setContent] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState<File | null>(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
@@ -209,9 +210,9 @@ export const Home: React.FC = () => {
   const [templateStyle, setTemplateStyle] = useState('');
   const [aspectRatio, setAspectRatio] = useState('16:9');
   const [isAspectRatioOpen, setIsAspectRatioOpen] = useState(false);
-  const [renovationFile, setRenovationFile] = useState<File | null>(null);
-  const [keepLayout, setKeepLayout] = useState(false);
-  const renovationFileInputRef = useRef<HTMLInputElement>(null);
+  const [paperId, setPaperId] = useState<string | null>(null);
+  const [paperTitle, setPaperTitle] = useState<string>('');
+  const [venue, setVenue] = useState<string>('conference');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const themeMenuRef = useRef<HTMLDivElement>(null);
 
@@ -266,6 +267,21 @@ export const Home: React.FC = () => {
 
   const textareaRef = useRef<MarkdownTextareaRef>(null);
   const [isMaterialSelectorOpen, setIsMaterialSelectorOpen] = useState(false);
+
+  // Paper/ArXiv callbacks
+  const handlePaperUploaded = useCallback((result: any) => {
+    const id = result?.data?.paper_id;
+    const title = result?.data?.title || '';
+    if (id) setPaperId(id);
+    if (title) setPaperTitle(title);
+  }, []);
+
+  const handleArxivFetched = useCallback((result: any) => {
+    const id = result?.data?.paper_id;
+    const title = result?.data?.title || '';
+    if (id) setPaperId(id);
+    if (title) setPaperTitle(title);
+  }, []);
 
   // Callback to insert at cursor position in the textarea
   const insertAtCursor = useCallback((markdown: string) => {
@@ -492,12 +508,26 @@ export const Home: React.FC = () => {
   };
 
   const tabConfig = {
-    idea: {
-      icon: <Sparkles size={20} />,
-      label: t('home.tabs.idea'),
-      placeholder: t('home.placeholders.idea'),
-      description: t('home.tabDescriptions.idea'),
+    paper: {
+      icon: <BookOpen size={20} />,
+      label: t('home.tabs.paper'),
+      placeholder: t('home.placeholders.paper'),
+      description: t('home.tabDescriptions.paper'),
       example: null as string | null,
+    },
+    arxiv: {
+      icon: <GraduationCap size={20} />,
+      label: t('home.tabs.arxiv'),
+      placeholder: t('home.placeholders.arxiv'),
+      description: t('home.tabDescriptions.arxiv'),
+      example: null as string | null,
+    },
+    text: {
+      icon: <FileEdit size={20} />,
+      label: t('home.tabs.text'),
+      placeholder: t('home.placeholders.text'),
+      description: t('home.tabDescriptions.text'),
+      example: t('home.examples.text'),
     },
     outline: {
       icon: <FileText size={20} />,
@@ -505,20 +535,6 @@ export const Home: React.FC = () => {
       placeholder: t('home.placeholders.outline'),
       description: t('home.tabDescriptions.outline'),
       example: t('home.examples.outline'),
-    },
-    description: {
-      icon: <FileEdit size={20} />,
-      label: t('home.tabs.description'),
-      placeholder: t('home.placeholders.description'),
-      description: t('home.tabDescriptions.description'),
-      example: t('home.examples.description'),
-    },
-    ppt_renovation: {
-      icon: <RefreshCw size={20} />,
-      label: t('home.tabs.ppt_renovation'),
-      placeholder: '',
-      description: t('home.tabDescriptions.ppt_renovation'),
-      example: null as string | null,
     },
   };
 
@@ -553,10 +569,10 @@ export const Home: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
-    // For ppt_renovation, validate file instead of content
-    if (activeTab === 'ppt_renovation') {
-      if (!renovationFile) {
-        show({ message: t('home.renovation.uploadFile'), type: 'error' });
+    // For paper/arxiv, validate paperId
+    if (activeTab === 'paper' || activeTab === 'arxiv') {
+      if (!paperId) {
+        show({ message: activeTab === 'paper' ? t('home.paper.uploadFile') : 'Please fetch an arXiv paper first', type: 'error' });
         return;
       }
     } else if (!content.trim()) {
@@ -578,36 +594,6 @@ export const Home: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      // PPT 翻新模式：走独立的上传+异步解析流程
-      if (activeTab === 'ppt_renovation' && renovationFile) {
-        const styleDesc = templateStyle.trim() ? templateStyle.trim() : undefined;
-        const result = await createPptRenovationProject(renovationFile, {
-          keepLayout,
-          templateStyle: styleDesc,
-        });
-
-        const projectId = result.data?.project_id;
-        const taskId = result.data?.task_id;
-        if (!projectId) {
-          show({ message: t('home.messages.projectCreateFailed'), type: 'error' });
-          return;
-        }
-
-        // Save project ID and task ID for DetailEditor to poll
-        localStorage.setItem('currentProjectId', projectId);
-        if (taskId) {
-          localStorage.setItem('renovationTaskId', taskId);
-        }
-
-        // Clear draft
-        sessionStorage.removeItem('home-draft-content');
-        sessionStorage.removeItem('home-draft-tab');
-
-        // Navigate to detail editor (will poll for task completion with skeleton UI)
-        navigate(`/project/${projectId}/detail`);
-        return;
-      }
-
       // 如果有模板ID但没有File，按需加载
       let templateFile = selectedTemplate;
       if (!templateFile && (selectedTemplateId || selectedPresetTemplateId)) {
@@ -625,7 +611,15 @@ export const Home: React.FC = () => {
         .filter(f => f.parse_status === 'completed')
         .map(f => f.id);
 
-      await initializeProject(activeTab as 'idea' | 'outline' | 'description', content, templateFile || undefined, styleDesc, refFileIds.length > 0 ? refFileIds : undefined, aspectRatio);
+      await initializeProject(
+        activeTab as 'idea' | 'outline' | 'description' | 'paper' | 'arxiv',
+        content,
+        templateFile || undefined,
+        styleDesc,
+        refFileIds.length > 0 ? refFileIds : undefined,
+        aspectRatio,
+        (activeTab === 'paper' || activeTab === 'arxiv') ? { paperId: paperId!, venue } : undefined
+      );
       
       // 根据类型跳转到不同页面
       const projectId = localStorage.getItem('currentProjectId');
@@ -673,12 +667,7 @@ export const Home: React.FC = () => {
         devLog('No materials to associate');
       }
       
-      if (activeTab === 'idea' || activeTab === 'outline') {
-        navigate(`/project/${projectId}/outline`);
-      } else if (activeTab === 'description') {
-        // 从描述生成：直接跳到描述生成页（因为已经自动生成了大纲和描述）
-        navigate(`/project/${projectId}/detail`);
-      }
+      navigate(`/project/${projectId}/outline`);
     } catch (error: any) {
       console.error('创建项目失败:', error);
       const msg = error?.response?.data?.error?.message || error?.message || t('home.messages.projectCreateFailed');
@@ -935,94 +924,31 @@ export const Home: React.FC = () => {
 
           {/* 输入区 - 带工具栏 */}
           <div className="mb-2">
-            {activeTab === 'ppt_renovation' ? (
-              /* PPT 翻新：文件上传区 */
+            {activeTab === 'paper' ? (
+              /* Paper 上传区 */
               <div className="space-y-4">
-                <div
-                  className="border-2 border-dashed border-gray-300 dark:border-border-primary rounded-xl p-8 text-center cursor-pointer hover:border-banana-400 dark:hover:border-banana transition-colors duration-200"
-                  onClick={() => renovationFileInputRef.current?.click()}
-                  onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const file = e.dataTransfer.files[0];
-                    if (file && (file.name.toLowerCase().endsWith('.pdf') || file.name.toLowerCase().endsWith('.pptx') || file.name.toLowerCase().endsWith('.ppt'))) {
-                      setRenovationFile(file);
-                      const ext = file.name.split('.').pop()?.toLowerCase();
-                      if (ext === 'ppt' || ext === 'pptx') {
-                        show({ message: `💡 ${t('home.messages.pptTip')}`, type: 'info' });
-                      }
-                    } else {
-                      show({ message: t('home.renovation.onlyPdfPptx'), type: 'error' });
-                    }
-                  }}
-                >
-                  {renovationFile ? (
-                    <div className="flex items-center justify-center gap-3">
-                      <FileText size={24} className="text-banana-600 dark:text-banana" />
-                      <div className="text-left">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">{renovationFile.name}</p>
-                        <p className="text-xs text-gray-500 dark:text-foreground-tertiary">{(renovationFile.size / 1024 / 1024).toFixed(1)} MB</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); setRenovationFile(null); }}
-                        className="ml-2 text-gray-400 hover:text-red-500 transition-colors"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <Upload size={32} className="mx-auto text-gray-400 dark:text-foreground-tertiary" />
-                      <p className="text-sm text-gray-600 dark:text-foreground-secondary">{t('home.renovation.uploadHint')}</p>
-                      <p className="text-xs text-gray-400 dark:text-foreground-tertiary">{t('home.renovation.formatHint')}</p>
-                    </div>
-                  )}
+                <PaperUploader onPaperUploaded={handlePaperUploaded} onError={(err) => show({ message: err, type: 'error' })} />
+                {paperTitle && (
+                  <p className="text-sm text-green-700 dark:text-green-400 font-medium truncate">Paper: {paperTitle}</p>
+                )}
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-foreground-tertiary mb-2 flex items-center gap-2">
+                    <GraduationCap size={16} />
+                    Select presentation venue:
+                  </p>
+                  <VenueSelector value={venue} onChange={setVenue} />
                 </div>
-                <input
-                  ref={renovationFileInputRef}
-                  type="file"
-                  accept=".pdf,.pptx,.ppt"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setRenovationFile(file);
-                      const ext = file.name.split('.').pop()?.toLowerCase();
-                      if (ext === 'ppt' || ext === 'pptx') {
-                        show({ message: `💡 ${t('home.messages.pptTip')}`, type: 'info' });
-                      }
-                    }
-                    e.target.value = '';
-                  }}
-                  className="hidden"
-                />
-
-                {/* 保留布局 toggle */}
-                <div className="flex items-center justify-between">
-                  <label className="flex items-center gap-2 cursor-pointer group">
-                    <span className="text-sm text-gray-600 dark:text-foreground-tertiary group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
-                      {t('home.renovation.keepLayout')}
-                    </span>
-                    <div className="relative">
-                      <input
-                        type="checkbox"
-                        checked={keepLayout}
-                        onChange={(e) => setKeepLayout(e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 dark:bg-background-hover peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-banana-300 dark:peer-focus:ring-banana/30 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white dark:after:bg-foreground-secondary after:border-gray-300 dark:after:border-border-hover after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-banana"></div>
-                    </div>
-                  </label>
-                  <Button
-                    size="sm"
-                    onClick={handleSubmit}
-                    loading={isSubmitting || isGlobalLoading}
-                    disabled={!renovationFile}
-                    className="shadow-sm dark:shadow-background-primary/30 text-xs md:text-sm px-3 md:px-4"
-                  >
-                    {t('common.next')}
-                  </Button>
+              </div>
+            ) : activeTab === 'arxiv' ? (
+              /* arXiv 输入区 */
+              <div className="space-y-4">
+                <ArxivInput onPaperFetched={handleArxivFetched} onError={(err) => show({ message: err, type: 'error' })} />
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-foreground-tertiary mb-2 flex items-center gap-2">
+                    <GraduationCap size={16} />
+                    Select presentation venue:
+                  </p>
+                  <VenueSelector value={venue} onChange={setVenue} />
                 </div>
               </div>
             ) : (
@@ -1035,7 +961,7 @@ export const Home: React.FC = () => {
               onFiles={handleImageFiles}
               onDocumentFiles={handleDocumentFiles}
               onSelectFromLibrary={() => setIsMaterialSelectorOpen(true)}
-              rows={activeTab === 'idea' ? 4 : 8}
+              rows={activeTab === 'text' ? 4 : 8}
               className="text-sm md:text-base border-2 border-gray-200 dark:border-border-primary dark:bg-background-tertiary dark:text-white focus-within:border-banana-400 dark:focus-within:border-banana transition-colors duration-200"
               toolbarLeft={
                 <div className="flex items-center gap-1">
@@ -1095,6 +1021,20 @@ export const Home: React.FC = () => {
                 </Button>
               }
             />
+            )}
+            {/* Paper/ArXiv 提交按钮 */}
+            {(activeTab === 'paper' || activeTab === 'arxiv') && (
+              <div className="flex justify-end mt-4">
+                <Button
+                  size="sm"
+                  onClick={handleSubmit}
+                  loading={isSubmitting || isGlobalLoading}
+                  disabled={!paperId}
+                  className="shadow-sm dark:shadow-background-primary/30 text-xs md:text-sm px-4 md:px-6"
+                >
+                  {t('home.actions.createProject')}
+                </Button>
+              </div>
             )}
           </div>
 

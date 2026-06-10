@@ -95,7 +95,7 @@ interface ProjectState {
   setError: (error: string | null) => void;
   
   // 项目操作
-  initializeProject: (type: 'idea' | 'outline' | 'description', content: string, templateImage?: File, templateStyle?: string, referenceFileIds?: string[], aspectRatio?: string) => Promise<void>;
+  initializeProject: (type: 'idea' | 'outline' | 'description' | 'paper' | 'arxiv', content: string, templateImage?: File, templateStyle?: string, referenceFileIds?: string[], aspectRatio?: string, extraData?: { paperId?: string; venue?: string }) => Promise<void>;
   syncProject: (projectId?: string) => Promise<void>;
   
   // 页面操作
@@ -197,10 +197,10 @@ const debouncedUpdatePage = debounce(
   setError: (error) => set({ error }),
 
   // 初始化项目
-  initializeProject: async (type, content, templateImage, templateStyle, referenceFileIds, aspectRatio) => {
+  initializeProject: async (type, content, templateImage, templateStyle, referenceFileIds, aspectRatio, extraData) => {
     set({ isGlobalLoading: true, error: null });
     try {
-      const request: any = {};
+      const request: any = { creation_type: type };
 
       if (type === 'idea') {
         request.idea_prompt = content;
@@ -208,6 +208,9 @@ const debouncedUpdatePage = debounce(
         request.outline_text = content;
       } else if (type === 'description') {
         request.description_text = content;
+      } else if (type === 'paper' || type === 'arxiv') {
+        request.paper_id = extraData?.paperId;
+        request.venue = extraData?.venue || 'conference';
       }
 
       // 添加风格描述（如果有）
@@ -266,6 +269,8 @@ const debouncedUpdatePage = debounce(
         await generateWithRollback(() => api.generateOutline(projectId), '生成大纲');
       } else if (type === 'description') {
         await generateWithRollback(() => api.generateFromDescription(projectId, content), '从描述生成大纲和页面描述');
+      } else if (type === 'paper' || type === 'arxiv') {
+        await generateWithRollback(() => api.generateOutline(projectId), '从论文生成大纲');
       }
 
       // 5. 获取完整项目信息

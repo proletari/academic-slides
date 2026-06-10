@@ -336,6 +336,11 @@ class AIService:
         outline = self.generate_json(outline_prompt, thinking_budget=1000)
         return outline
 
+    def generate_outline_with_prompt(self, project_context: ProjectContext, prompt: str, language: str = None) -> List[Dict]:
+        """Generate outline using a custom prompt (e.g., academic prompts)."""
+        outline = self.generate_json(prompt, thinking_budget=1000)
+        return outline
+
     @staticmethod
     def parse_markdown_outline(markdown: str) -> List[Dict]:
         """
