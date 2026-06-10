@@ -1,7 +1,7 @@
 import React from 'react';
 import { Github } from 'lucide-react';
 
-const GITHUB_REPO = 'Anionex/banana-slides';
+const GITHUB_REPO = 'proletari/academic-slides';
 const GITHUB_URL = `https://github.com/${GITHUB_REPO}`;
 
 export const Footer: React.FC = () => {
@@ -14,13 +14,13 @@ export const Footer: React.FC = () => {
           {/* Copyright */}
           <div className="flex items-center gap-1.5">
             <span>© {currentYear}</span>
-            <span className="font-medium bg-gradient-to-r from-banana-600 to-orange-500 bg-clip-text text-transparent">
-              蕉幻 Banana Slides
+            <span className="font-medium bg-gradient-to-r from-blue-600 to-indigo-500 bg-clip-text text-transparent">
+              Academic Slides
             </span>
           </div>
 
-          {/* Divider - 仅在大屏显示 */}
-          <span className="hidden sm:inline text-gray-300 dark:text-border-primary">·</span>
+          {/* Divider */}
+          <span className="hidden sm:inline text-gray-300 dark:border-primary">·</span>
 
           {/* GitHub Link */}
           <a
