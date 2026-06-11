@@ -48,15 +48,15 @@ const i18nDict = {
   },
   en: {
     guide: {
-      brand: 'Banana Slides',
+      brand: 'Academic Slides',
       setup: 'Quick Start',
       setupSub: 'Complete basic configuration and start your AI creation journey',
       features: 'Features',
       featuresSub: 'Explore how to use AI to quickly create beautiful PPT',
       gallery: 'Showcases',
-      gallerySub: 'Here are PPT examples generated with Banana Slides',
+      gallerySub: 'Here are PPT examples generated with Academic Slides',
       galleryMore: 'View more examples',
-      hi: 'Welcome to Banana Slides!',
+      hi: 'Welcome to Academic Slides!',
       hiSub: "Let's complete the basic configuration before you start",
       s1: 'Configure API Key',
       s1d: 'Go to settings page to configure the API services needed for the project, including:',
@@ -160,7 +160,7 @@ const renderSetupPage: PageRenderer = ({ t, lang, navigate, onClose }) => {
     <div className="space-y-6">
       <div className="text-center space-y-3">
         <div className="inline-flex items-center justify-center mr-4">
-          <img src="/logo.png" alt="Banana Slides Logo" className="h-16 w-16 object-contain" />
+          <img src="/logo.png" alt="Academic Slides Logo" className="h-16 w-16 object-contain" />
         </div>
         <h3 className="text-2xl font-bold text-gray-800 dark:text-foreground-primary">{t('guide.hi')}</h3>
         <p className="text-sm text-gray-600 dark:text-foreground-tertiary">{t('guide.hiSub')}</p>
@@ -190,7 +190,7 @@ const renderSetupPage: PageRenderer = ({ t, lang, navigate, onClose }) => {
           <h4 className="font-semibold text-gray-800 dark:text-foreground-primary">{t('guide.s4')}</h4>
           <p className="text-sm text-gray-600 dark:text-foreground-tertiary">{t('guide.s4d')}</p>
         </div>
-        <a href="https://github.com/Anionex/banana-slides/issues" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-banana-600 hover:text-banana-700 font-medium">
+        <a href="https://github.com/proletari/academic-slides/issues" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium">
           <ExternalLink size={14} />
           {t('guide.issueLink')}
         </a>
@@ -289,7 +289,7 @@ const renderGalleryPage: PageRenderer = ({ t, showcaseIdx, setShowcaseIdx }) => 
       </div>
 
       <div className="text-center pt-4">
-        <a href="https://github.com/Anionex/banana-slides/issues/2" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-banana-600 hover:text-banana-700 font-medium">
+        <a href="https://github.com/proletari/academic-slides/issues/2" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium">
           <ExternalLink size={14} />
           {t('guide.galleryMore')}
         </a>
@@ -338,7 +338,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
         {/* header */}
         <div className="text-center pb-4 border-b border-gray-100 dark:border-border-primary">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-banana-50 dark:from-background-primary to-orange-50 rounded-full mb-3">
-            <Palette size={18} className="text-banana-600" />
+            <Palette size={18} className="text-blue-600" />
             <span className="text-sm font-medium text-gray-700 dark:text-foreground-secondary">{t('guide.brand')}</span>
           </div>
           <h2 className="text-2xl font-bold text-gray-800 dark:text-foreground-primary">{t(page.titleKey)}</h2>
@@ -372,7 +372,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
             )}
           </div>
 
-          <a href="https://github.com/Anionex/banana-slides" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-500 dark:text-foreground-tertiary hover:text-gray-700 dark:hover:text-gray-200 flex items-center gap-1">
+          <a href="https://github.com/proletari/academic-slides" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-500 dark:text-foreground-tertiary hover:text-gray-700 dark:hover:text-gray-200 flex items-center gap-1">
             <ExternalLink size={14} />
             GitHub
           </a>

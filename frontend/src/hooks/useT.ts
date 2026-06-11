@@ -37,13 +37,13 @@ function getNestedValue(obj: NestedRecord, path: string): string | undefined {
  * const homeI18n = {
  *   zh: {
  *     home: {
- *       title: '蕉幻',
+ *       title: 'Academic Slides',
  *       messages: { success: '成功' }
  *     }
  *   },
  *   en: {
  *     home: {
- *       title: 'Banana Slides',
+ *       title: 'Academic Slides',
  *       messages: { success: 'Success' }
  *     }
  *   }
@@ -51,7 +51,7 @@ function getNestedValue(obj: NestedRecord, path: string): string | undefined {
  * 
  * const t = useT(homeI18n);
  * 
- * t('home.title')     // 从组件内翻译获取: "蕉幻"
+ * t('home.title')     // 从组件内翻译获取: "Academic Slides"
  * t('common.save')    // 组件内没有，自动 fallback 到全局: "保存"
  * ```
  * 

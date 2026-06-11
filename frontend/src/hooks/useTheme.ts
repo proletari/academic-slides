@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 export type Theme = 'light' | 'dark' | 'system';
 
-const THEME_KEY = 'banana-slides-theme';
+const THEME_KEY = 'academic-slides-theme';
 
 function getSystemTheme(): 'light' | 'dark' {
   if (typeof window !== 'undefined' && window.matchMedia) {

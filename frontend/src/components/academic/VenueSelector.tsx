@@ -1,18 +1,32 @@
 import React from 'react';
 import { GraduationCap, Mic, Users, BookOpen } from 'lucide-react';
+import { useT } from '@/hooks/useT';
+
+const venueI18n = {
+  zh: {
+    conference: { name: '学术会议', description: 'NeurIPS, ICML, ICLR, ACL, KDD' },
+    thesis: { name: '学位答辩', description: '博士/硕士学位答辩' },
+    meeting: { name: '组会报告', description: '实验室组会、进展汇报' },
+    lecture: { name: '课程讲座', description: '教学、Tutorial、Workshop' },
+  },
+  en: {
+    conference: { name: 'Conference Talk', description: 'NeurIPS, ICML, ICLR, ACL, KDD' },
+    thesis: { name: 'Thesis Defense', description: 'PhD/Master defense presentation' },
+    meeting: { name: 'Group Meeting', description: 'Lab meeting, progress update' },
+    lecture: { name: 'Lecture', description: 'Teaching, tutorial, workshop' },
+  },
+};
 
 interface Venue {
   id: string;
-  name: string;
-  description: string;
   icon: React.ReactNode;
 }
 
 const VENUES: Venue[] = [
-  { id: 'conference', name: 'Conference Talk', description: 'NeurIPS, ICML, ICLR, ACL, KDD', icon: <Mic className="w-4 h-4" /> },
-  { id: 'thesis', name: 'Thesis Defense', description: 'PhD/Master defense presentation', icon: <GraduationCap className="w-4 h-4" /> },
-  { id: 'meeting', name: 'Group Meeting', description: 'Lab meeting, progress update', icon: <Users className="w-4 h-4" /> },
-  { id: 'lecture', name: 'Lecture', description: 'Teaching, tutorial, workshop', icon: <BookOpen className="w-4 h-4" /> },
+  { id: 'conference', icon: <Mic className="w-4 h-4" /> },
+  { id: 'thesis', icon: <GraduationCap className="w-4 h-4" /> },
+  { id: 'meeting', icon: <Users className="w-4 h-4" /> },
+  { id: 'lecture', icon: <BookOpen className="w-4 h-4" /> },
 ];
 
 interface VenueSelectorProps {
@@ -21,6 +35,8 @@ interface VenueSelectorProps {
 }
 
 export function VenueSelector({ value, onChange }: VenueSelectorProps) {
+  const t = useT(venueI18n);
+
   return (
     <div className="grid grid-cols-2 gap-2">
       {VENUES.map((venue) => (
@@ -38,10 +54,10 @@ export function VenueSelector({ value, onChange }: VenueSelectorProps) {
           </div>
           <div>
             <p className={`text-sm font-medium ${value === venue.id ? 'text-blue-700 dark:text-blue-300' : 'text-gray-700 dark:text-gray-300'}`}>
-              {venue.name}
+              {t(`${venue.id}.name`)}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-              {venue.description}
+              {t(`${venue.id}.description`)}
             </p>
           </div>
         </button>

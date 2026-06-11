@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Github, Star, GitFork } from 'lucide-react';
 
-const GITHUB_REPO = 'Anionex/banana-slides';
+const GITHUB_REPO = 'proletari/academic-slides';
 const GITHUB_URL = `https://github.com/${GITHUB_REPO}`;
 
 interface GithubStats {
