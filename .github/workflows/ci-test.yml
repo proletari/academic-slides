@@ -3,7 +3,7 @@ name: CI Tests
 # Push to main/develop (excluding docs-only changes) or manual trigger
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ master ]
     paths-ignore:
       - '**/*.md'
       - 'docs/**'
